@@ -1,28 +1,33 @@
-const express = require('express');
+const express = require("express");
 
 const app = express();
 
+// multiple request handlers can be passed in app.use() or app.method()  method can be anything get post whatever
 
-app.get('/user/:userId/:userName/:city',(req,res)=>{
-    // http://localhost:7777/user?userName=komal&city=pune
-    // const params=req.query;
-    const params= req.params;
-    res.send(params)
-})
-app.post('/user',(req,res)=>{
-    res.send("post res")
-})
-app.delete('/user',(req,res)=>{
-    res.send("delete res")
-})
-app.patch('/user',(req,res)=>{
-    res.send("patch res")
-})
 
-app.get(/.*fig$/,(req,res)=>{
-    res.send("profile res")
-})
 
-app.listen(7777,()=>{
-    console.log("server listening")
-})
+app.use("/user", (req, res, next) => {
+  console.log("first");
+  next();
+});
+
+
+app.use("/user", (req, res, next) => {
+  console.log("second");
+  next();
+  res.send("second response");
+});
+
+app.use("/user/data", (req, res, next) => {
+  console.log("third");
+  // next();
+});
+
+app.use("/user", (req, res) => {
+  console.log("fourth");
+  res.send("fourth response");
+});
+
+app.listen(7777, () => {
+  console.log("server listening");
+});
