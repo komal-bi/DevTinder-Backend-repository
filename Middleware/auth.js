@@ -1,5 +1,5 @@
 const auth = (req, res, next) => {
-  let reqUser = "xyzs";
+  let reqUser = "xyz";
   let isAuthUser = reqUser == "xyz";
   if (isAuthUser) {
     next();
