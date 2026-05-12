@@ -67,16 +67,23 @@ app.delete("/user", async (req, res) => {
 
 // update the user from database
 
-app.patch("/user",async(req,res)=>{
-  let userId=req.body.userId;
+app.patch("/user/:id",async(req,res)=>{
+  let userId=req.params.id;
   let data = req.body;
   try {
     // await User.findByIdAndUpdate({_id:userId},data)
-    let beforeUpdate=await User.findByIdAndUpdate(userId,data,{returnDocument:'before'}) 
+    let allowedUpdates = ["age","photoUrl","about","skills"]
+    let isAllow=Object.keys(data).every(k=>allowedUpdates.includes(k))
+    console.log("isAllow",isAllow)
+    if(!isAllow)
+    {
+      throw new Error("User not updated because some fields are not allowed to be empty")
+    }
+    let beforeUpdate=await User.findByIdAndUpdate(userId,data,{returnDocument:'before',runValidators:true}) 
     console.log("beforeUpdate",beforeUpdate)
     res.send("User updated successfully")
   } catch (error) {
-    res.status(400).send("Something went wrong")
+    res.status(400).send(error)
   }
 })
 
