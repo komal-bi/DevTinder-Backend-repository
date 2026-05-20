@@ -1,5 +1,7 @@
 const express = require("express");
 const { User } = require("../models/user");
+const { userAuth } = require("../../Middleware/auth");
+const ConnectionRequest = require("../models/connection");
 const userRouter = express.Router();
 
 // get one user from database using email
@@ -12,21 +14,6 @@ userRouter.get("/user", async (req, res) => {
       res.status(401).send("User not found");
     } else {
       res.send(user);
-    }
-  } catch (error) {
-    res.status(400).send("Something went wrong");
-  }
-});
-
-// get users from database
-
-userRouter.get("/feed", async (req, res) => {
-  try {
-    let users = await User.find({});
-    if (users.length == 0) {
-      res.status(401).send("Users not found");
-    } else {
-      res.send(users);
     }
   } catch (error) {
     res.status(400).send("Something went wrong");
@@ -67,6 +54,105 @@ userRouter.patch("/user/:id", async (req, res) => {
     res.send("User updated successfully");
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+userRouter.get("/user/requests/received", userAuth, async (req, res) => {
+  try {
+    let loggedInUserId = req.user._id;
+    let connections = await ConnectionRequest.find({
+      toUserId: loggedInUserId,
+      status: "interested",
+    }).populate("fromUserId", ["firstName", "lastName", "profileUrl"]);
+
+    if (connections?.length) {
+      res.send(connections);
+    } else {
+      res.status(401).send("No requests found");
+    }
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+});
+
+userRouter.get("/user/connections", userAuth, async (req, res) => {
+  try {
+    let loggedinUser = req.user;
+
+    let connections = await ConnectionRequest.find({
+      $or: [
+        {
+          fromUserId: loggedinUser._id,
+          status: "accepted",
+        },
+        {
+          toUserId: loggedinUser._id,
+          status: "accepted",
+        },
+      ],
+    })
+      .populate("fromUserId", ["firstName", "lastName", "profileUrl"])
+      .populate("toUserId", ["firstName", "lastName", "profileUrl"]);
+    if (connections?.length) {
+      let allConnections = connections.map((ele) => {
+        if (ele.fromUserId.equals(loggedinUser._id)) {
+          return ele.toUserId;
+        }
+        return ele.fromUserId;
+      });
+      res.send(allConnections);
+    } else {
+      res.status(401).send("No connections");
+    }
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+});
+
+// get users from database
+
+userRouter.get("/user/feed", userAuth, async (req, res) => {
+  try {
+    let loggedInUser = req.user;
+    let page = req.query.page || 1;
+    let limit = req.query.limit || 10;
+    let skip = (page - 1) * limit;
+    limit = limit > 50 ? 50 : limit;
+
+    let connections = await ConnectionRequest.find({
+      $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+    }).select(["fromUserId", "toUserId"]);
+
+    let hideFieldsSet = new Set();
+
+    connections.map((ele) => {
+      hideFieldsSet.add(ele.fromUserId.toString());
+      hideFieldsSet.add(ele.toUserId.toString());
+    });
+
+    let hideFieldsArray = Array.from(hideFieldsSet);
+
+    let users = await User.find({
+      $and: [
+        {
+          _id: {
+            $nin: hideFieldsArray,
+          },
+        },
+        {
+          _id: {
+            $ne: loggedInUser._id,
+          },
+        },
+      ],
+    })
+      .select(["firstName", "lastName"])
+      .skip(skip)
+      .limit(limit);
+
+    res.send(users);
+  } catch (error) {
+    res.status(400).send(error.message);
   }
 });
 
