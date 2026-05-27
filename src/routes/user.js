@@ -63,10 +63,10 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
     let connections = await ConnectionRequest.find({
       toUserId: loggedInUserId,
       status: "interested",
-    }).populate("fromUserId", ["firstName", "lastName", "profileUrl"]);
+    }).populate("fromUserId", ["firstName", "lastName", "profileUrl", "about"]);
 
     if (connections?.length) {
-      res.send(connections);
+      res.send(connections?.map((ele) => ele?.fromUserId));
     } else {
       res.status(401).send("No requests found");
     }
@@ -91,8 +91,8 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         },
       ],
     })
-      .populate("fromUserId", ["firstName", "lastName", "profileUrl"])
-      .populate("toUserId", ["firstName", "lastName", "profileUrl"]);
+      .populate("fromUserId", ["firstName", "lastName", "profileUrl", "about"])
+      .populate("toUserId", ["firstName", "lastName", "profileUrl", "about"]);
     if (connections?.length) {
       let allConnections = connections.map((ele) => {
         if (ele.fromUserId.equals(loggedinUser._id)) {
@@ -146,7 +146,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         },
       ],
     })
-      .select(["firstName", "lastName"])
+      .select(["firstName", "lastName", "profileUrl", "about"])
       .skip(skip)
       .limit(limit);
 

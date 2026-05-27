@@ -10,14 +10,22 @@ const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const userRouter = require("./routes/user");
+const cors = require("cors");
 
 const app = express();
 
 // middleware which converts json object to javascript object
 
+app.use(
+  cors({
+    origin: ["http://localhost:5173","http://13.60.71.138"],
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 
-app.use(cookieParser());  
+app.use(cookieParser());
 
 app.use("/", authRouter);
 app.use("/", profileRouter);

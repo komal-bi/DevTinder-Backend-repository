@@ -45,7 +45,7 @@ requestRouter.post(
       await connection.save();
       res.send("Connection sent successfully");
     } catch (error) {
-      res.status(400).send(error.message);
+      res.status(400).send({message:error.message});
     }
   },
 );

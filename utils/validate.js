@@ -39,6 +39,7 @@ const validateProfileEditData = (data) => {
     "gender",
     "about",
     "skills",
+    "password"
   ];
   let isEditApplicable = Object.keys(data).every((ele) =>
     allowedFileds.includes(ele),

@@ -5,7 +5,7 @@ const userAuth = async (req, res, next) => {
   try {
     let { token } = req.cookies;
     if (!token) {
-      throw new Error("Invalid Token");
+      return res.status(401).send({message:"Invalid token"});
     }
 
     let verificationData = await jwt.verify(token, "devTinder_6758");
@@ -18,7 +18,8 @@ const userAuth = async (req, res, next) => {
     req.user=user;
     next();
   } catch (error) {
-    res.status(400).send(error.message);
+    console.log("error",error)
+    res.status(400).send({message:error.message});
   }
 };
 
