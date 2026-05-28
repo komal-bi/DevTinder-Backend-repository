@@ -44,7 +44,7 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("Invalid Credentials");
     } else {
       // create the token
-      // let token = await jwt.sign({ _id: user._id }, "devTinder_6758",{expiresIn:'0s'});
+      // let token = await jwt.sign({ _id: user._id }, process.env.SECRET_KEY,{expiresIn:'0s'});
       let token = await user.getJwt();
       // create a cookie and append the token inside it and append that cookie with response so that it sends with response
       // res.cookie("token", token,{expires:new Date(Date.now()+90000)});
