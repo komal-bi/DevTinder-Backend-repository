@@ -92,7 +92,7 @@ paymentRouter.get("/payment/verification", userAuth, async (req, res) => {
     let user = req.user;
     let userData = await User.findById({ _id: user._id });
     if (userData) {
-      res.send({ isPremium: true });
+      res.send({ isPremium: userData.isPremium });
     } else {
       res.status(401).send({ message: "User not found" });
     }
